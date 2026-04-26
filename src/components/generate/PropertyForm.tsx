@@ -5,48 +5,37 @@ import Button from "@/components/ui/Button";
 import { PropertyFormData } from "@/lib/openai";
 
 const PROPERTY_TYPES = [
-  { value: "", label: "Sélectionner le type..." },
-  { value: "Single-Family Home", label: "Maison individuelle" },
-  { value: "Condo / Apartment", label: "Appartement / Studio" },
-  { value: "Townhouse", label: "Maison de ville" },
-  { value: "Multi-Family", label: "Immeuble" },
-  { value: "Commercial", label: "Local commercial" },
-  { value: "Land / Lot", label: "Terrain" },
-  { value: "Vacation Rental", label: "Location saisonnière" },
-  { value: "Luxury Estate", label: "Propriété de luxe" },
+  { value: "", label: "Select property type..." },
+  { value: "Single-Family Home", label: "Single-Family Home" },
+  { value: "Condo / Apartment", label: "Condo / Apartment" },
+  { value: "Townhouse", label: "Townhouse" },
+  { value: "Multi-Family", label: "Multi-Family" },
+  { value: "Commercial", label: "Commercial" },
+  { value: "Land / Lot", label: "Land / Lot" },
+  { value: "Vacation Rental", label: "Vacation Rental" },
+  { value: "Luxury Estate", label: "Luxury Estate" },
 ];
 
 const TONES = [
-  { value: "", label: "Sélectionner le ton..." },
-  { value: "Professional & Elegant", label: "Professionnel & Élégant" },
-  { value: "Warm & Inviting", label: "Chaleureux & Accueillant" },
-  { value: "Luxury & Prestigious", label: "Luxe & Prestige" },
-  { value: "Modern & Minimalist", label: "Moderne & Minimaliste" },
-  { value: "Family-Friendly", label: "Familial" },
-  { value: "Enthusiastic & Energetic", label: "Enthousiaste & Dynamique" },
-  { value: "Investment-Focused", label: "Investissement" },
+  { value: "", label: "Select tone..." },
+  { value: "Professional & Elegant", label: "Professional & Elegant" },
+  { value: "Warm & Inviting", label: "Warm & Inviting" },
+  { value: "Luxury & Prestigious", label: "Luxury & Prestigious" },
+  { value: "Modern & Minimalist", label: "Modern & Minimalist" },
+  { value: "Family-Friendly", label: "Family-Friendly" },
+  { value: "Enthusiastic & Energetic", label: "Enthusiastic & Energetic" },
+  { value: "Investment-Focused", label: "Investment-Focused" },
 ];
 
 const AUDIENCES = [
-  { value: "", label: "Sélectionner l'audience..." },
-  { value: "General buyers", label: "Acheteurs généraux" },
-  { value: "Luxury buyers", label: "Acheteurs luxe" },
-  { value: "First-time homebuyers", label: "Primo-accédants" },
-  { value: "Young professionals", label: "Jeunes actifs" },
-  { value: "Families with children", label: "Familles avec enfants" },
-  { value: "Retirees", label: "Retraités" },
-  { value: "Real estate investors", label: "Investisseurs" },
-];
-
-const LANGUAGES = [
-  { value: "French", label: "🇫🇷 Français" },
-  { value: "English", label: "🇬🇧 English" },
-  { value: "Spanish", label: "🇪🇸 Español" },
-  { value: "German", label: "🇩🇪 Deutsch" },
-  { value: "Italian", label: "🇮🇹 Italiano" },
-  { value: "Portuguese", label: "🇵🇹 Português" },
-  { value: "Dutch", label: "🇳🇱 Nederlands" },
-  { value: "Arabic", label: "🇦🇪 العربية" },
+  { value: "", label: "Select target audience..." },
+  { value: "General buyers", label: "General Buyers" },
+  { value: "Luxury buyers", label: "Luxury Buyers" },
+  { value: "First-time homebuyers", label: "First-Time Homebuyers" },
+  { value: "Young professionals", label: "Young Professionals" },
+  { value: "Families with children", label: "Families with Children" },
+  { value: "Retirees", label: "Retirees" },
+  { value: "Real estate investors", label: "Real Estate Investors" },
 ];
 
 interface PropertyFormProps {
@@ -65,7 +54,6 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
     uniqueSelling: "",
     targetAudience: "",
     tone: "",
-    language: "French",
   });
 
   const update = (field: keyof PropertyFormData, value: string) =>
@@ -83,67 +71,68 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
       {/* Section 1: Basics */}
       <div>
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-[0.12em] mb-4">
-          Informations du bien
+          Property Basics
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <Select
-            label="Type de bien *"
+            label="Property Type *"
             options={PROPERTY_TYPES}
             value={form.propertyType}
             onChange={(e) => update("propertyType", e.target.value)}
             required
           />
           <Input
-            label="Localisation *"
-            placeholder="ex. Lyon 6ème, Paris 16ème..."
+            label="Location *"
+            placeholder="e.g. Pacific Heights, San Francisco, CA"
             value={form.location}
             onChange={(e) => update("location", e.target.value)}
             required
           />
           <Input
-            label="Chambres"
+            label="Bedrooms"
             type="number"
-            placeholder="ex. 3"
+            placeholder="e.g. 4"
             min="0"
             value={form.bedrooms}
             onChange={(e) => update("bedrooms", e.target.value)}
           />
           <Input
-            label="Salles de bain"
+            label="Bathrooms"
             type="number"
-            placeholder="ex. 2"
+            placeholder="e.g. 2.5"
             min="0"
             step="0.5"
             value={form.bathrooms}
             onChange={(e) => update("bathrooms", e.target.value)}
           />
           <Input
-            label="Surface"
-            placeholder="ex. 85 m²"
+            label="Square Footage"
+            placeholder="e.g. 2,450 sq ft"
             value={form.squareFootage}
             onChange={(e) => update("squareFootage", e.target.value)}
           />
         </div>
       </div>
 
+      {/* Divider */}
       <div className="border-t border-white/[0.06]" />
 
       {/* Section 2: Features */}
       <div>
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-[0.12em] mb-4">
-          Points forts
+          Selling Points
         </h3>
         <div className="space-y-4">
           <Textarea
-            label="Caractéristiques principales"
-            placeholder="ex. Cuisine équipée, parquet chêne, double vitrage, cave, parking..."
+            label="Key Features"
+            placeholder="e.g. Chef's kitchen with marble countertops, hardwood floors, vaulted ceilings, two-car garage, updated HVAC..."
             rows={3}
             value={form.keyFeatures}
             onChange={(e) => update("keyFeatures", e.target.value)}
           />
           <Textarea
-            label="Argument de vente unique"
-            placeholder="ex. Vue panoramique, proche écoles, immeuble haussmannien, terrasse sud..."
+            label="Unique Selling Proposition"
+            placeholder="e.g. Panoramic bay views, income-generating ADU, steps from top-rated schools, historic Victorian architecture..."
             rows={2}
             value={form.uniqueSelling}
             onChange={(e) => update("uniqueSelling", e.target.value)}
@@ -151,46 +140,28 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
         </div>
       </div>
 
+      {/* Divider */}
       <div className="border-t border-white/[0.06]" />
 
-      {/* Section 3: Style & Langue */}
+      {/* Section 3: Tone */}
       <div>
         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-[0.12em] mb-4">
-          Style & Langue
+          Audience & Tone
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <Select
-            label="Audience cible"
+            label="Target Audience"
             options={AUDIENCES}
             value={form.targetAudience}
             onChange={(e) => update("targetAudience", e.target.value)}
           />
           <Select
-            label="Ton de rédaction *"
+            label="Writing Tone *"
             options={TONES}
             value={form.tone}
             onChange={(e) => update("tone", e.target.value)}
             required
           />
-          <div className="sm:col-span-2">
-            <p className="text-xs font-medium text-slate-400 mb-2">Langue de la description</p>
-            <div className="grid grid-cols-4 gap-2">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.value}
-                  type="button"
-                  onClick={() => update("language", lang.value)}
-                  className={`text-xs px-3 py-2 rounded-lg border transition-all text-center ${
-                    form.language === lang.value
-                      ? "border-amber-500/60 bg-amber-500/10 text-amber-400"
-                      : "border-white/[0.08] bg-white/[0.02] text-slate-400 hover:border-white/20 hover:text-slate-300"
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -203,7 +174,7 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
         disabled={!isValid}
         className="w-full"
       >
-        {isLoading ? "Génération en cours..." : "Générer la description"}
+        {isLoading ? "Generating your description..." : "Generate Description"}
         {!isLoading && (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M8 2l6 6-6 6M2 8h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -212,7 +183,8 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
       </Button>
 
       <p className="text-center text-xs text-slate-600">
-        1 crédit utilisé par génération
+        1 credit will be used · You have{" "}
+        <span className="text-amber-400 font-medium">5 free credits</span> remaining
       </p>
     </form>
   );
