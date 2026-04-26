@@ -27,9 +27,9 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { href: "#how-it-works", label: "Comment ça marche" },
-    { href: "#pricing", label: "Tarifs" },
-    { href: "#faq", label: "FAQ" },
+    { href: "/comment-ca-marche", label: "Comment ça marche" },
+    { href: "/tarifs", label: "Tarifs" },
+    { href: "/faq", label: "FAQ" },
   ];
 
   return (
