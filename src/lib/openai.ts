@@ -18,11 +18,11 @@ export async function generateWithGroq(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: "You are an expert e-commerce copywriter. Write compelling, SEO-optimized product descriptions that convert. Output ONLY the description." },
+        { role: "system", content: "Tu es un expert copywriter e-commerce senior avec 15 ans experience. Tes fiches produits generent 3x plus de conversions. Chaque fiche est UNIQUE, jamais les memes formules. Tu commences TOUJOURS par une accroche emotionnelle surprenante, jamais Decouvrez ou Voici. Tu fais RESSENTIR le produit avant de lister les caracteristiques. Mots-cles SEO integres naturellement. Respecte exactement le format demande. Pas de titre, commentaire ou meta-texte en sortie." },
         { role: "user", content: prompt },
       ],
-      max_tokens: 600,
-      temperature: 0.8,
+      max_tokens: 900,
+      temperature: 0.85,
     }),
   });
   if (!response.ok) {
@@ -34,12 +34,37 @@ export async function generateWithGroq(prompt: string): Promise<string> {
 }
 
 export function buildPrompt(data: ProductFormData): string {
-  let p = "Write an SEO-optimized e-commerce product description in " + data.language + ". ";
-  p += "Product: " + data.productName + ". Category: " + data.category + ". ";
-  if (data.features) p += "Features: " + data.features + ". ";
-  if (data.uniqueSelling) p += "Unique value: " + data.uniqueSelling + ". ";
-  if (data.targetBuyer) p += "Target buyer: " + data.targetBuyer + ". ";
-  p += "Tone: " + data.tone + ". ";
-  p += "Rules: write entirely in " + data.language + ", hook the reader immediately, weave in SEO keywords naturally, highlight benefits over features, create desire, end with a subtle CTA, 100-180 words, output ONLY the description.";
-  return p;
+  const lang = data.language;
+  const parts: string[] = [
+    "Redige une fiche produit professionnelle en " + lang + " pour le produit suivant.",
+    "",
+    "=== INFORMATIONS PRODUIT ===",
+    "Produit : " + data.productName,
+    "Categorie : " + data.category,
+  ];
+  if (data.features) parts.push("Caracteristiques : " + data.features);
+  if (data.uniqueSelling) parts.push("Ce qui le differencie : " + data.uniqueSelling);
+  if (data.targetBuyer) parts.push("Client cible : " + data.targetBuyer);
+  parts.push("Ton editorial : " + data.tone);
+  parts.push("");
+  parts.push("=== FORMAT DE SORTIE (suivre EXACTEMENT) ===");
+  parts.push("");
+  parts.push("[ACCROCHE]");
+  parts.push("1 phrase courte, percutante, emotionnelle. Jamais Decouvrez/Voici/Presentation.");
+  parts.push("");
+  parts.push("[PARAGRAPHE IMMERSIF]");
+  parts.push("3-4 phrases. Fais vivre le produit : sensations, images, benefices ressentis. Pas de liste.");
+  parts.push("");
+  parts.push("[POINTS CLES]");
+  parts.push("5 lignes commencant par une coche symbole check, chacune = 1 caracteristique + son benefice concret.");
+  parts.push("");
+  parts.push("[POURQUOI CE PRODUIT]");
+  parts.push("2-3 phrases. Ce qui rend ce produit irreplacable. Pas de repetition des points cles.");
+  parts.push("");
+  parts.push("[CALL TO ACTION]");
+  parts.push("1 phrase finale qui donne envie d agir maintenant.");
+  parts.push("");
+  parts.push("Longueur totale : 250 a 350 mots. Integre 3 a 5 mots-cles SEO naturellement.");
+  parts.push("Ecris entierement en " + lang + ". Ne reproduis pas les titres entre crochets dans ta reponse.");
+  return parts.join(String.fromCharCode(10));
 }
