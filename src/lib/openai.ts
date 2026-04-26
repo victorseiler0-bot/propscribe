@@ -19,20 +19,21 @@ export interface PropertyFormData {
   uniqueSelling: string;
   targetAudience: string;
   tone: string;
+  language: string;
 }
 
 export function buildPrompt(data: PropertyFormData): string {
-  return `You are PropScribe, an expert real estate copywriter. Generate a compelling, professional property listing description based on the following details.
+  return `Generate a compelling, professional real estate property listing description based on the following details. Write the description in ${data.language}.
 
 Property Details:
 - Type: ${data.propertyType}
 - Location: ${data.location}
-- Bedrooms: ${data.bedrooms}
-- Bathrooms: ${data.bathrooms}
-- Square Footage: ${data.squareFootage}
-- Key Features: ${data.keyFeatures}
-- Unique Selling Points: ${data.uniqueSelling}
-- Target Audience: ${data.targetAudience}
+- Bedrooms: ${data.bedrooms || "N/A"}
+- Bathrooms: ${data.bathrooms || "N/A"}
+- Square Footage: ${data.squareFootage || "N/A"}
+- Key Features: ${data.keyFeatures || "N/A"}
+- Unique Selling Points: ${data.uniqueSelling || "N/A"}
+- Target Audience: ${data.targetAudience || "General buyers"}
 - Tone: ${data.tone}
 
 Write a captivating property description that:
@@ -43,6 +44,7 @@ Write a captivating property description that:
 5. Ends with a strong call-to-action
 6. Is between 150-250 words
 7. Uses the specified tone throughout
+8. Is written entirely in ${data.language}
 
 Return only the property description, no preamble or meta-commentary.`;
 }

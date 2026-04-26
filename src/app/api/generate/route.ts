@@ -4,6 +4,8 @@ import { createServerSupabaseClient, createServiceClient } from "@/lib/supabase-
 
 export const runtime = "nodejs";
 
+const ADMIN_EMAILS = ["victorseiler0@gmail.com"];
+
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -12,18 +14,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
   }
 
+  const isAdmin = ADMIN_EMAILS.includes(user.email ?? "");
   const service = createServiceClient();
-  const { data: profile } = await service
-    .from("profiles")
-    .select("credits")
-    .eq("id", user.id)
-    .single();
 
-  if (!profile || profile.credits < 1) {
-    return NextResponse.json(
-      { error: "Crédits insuffisants. Achetez des crédits pour continuer." },
-      { status: 402 }
-    );
+  let currentCredits = 0;
+
+  if (!isAdmin) {
+    const { data: profile } = await service
+      .from("profiles")
+      .select("credits")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.credits < 1) {
+      return NextResponse.json(
+        { error: "Crédits insuffisants. Achetez des crédits pour continuer." },
+        { status: 402 }
+      );
+    }
+    currentCredits = profile.credits;
   }
 
   try {
@@ -35,6 +44,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    if (!data.language) data.language = "French";
 
     const prompt = buildPrompt(data);
 
@@ -54,10 +65,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await service
-      .from("profiles")
-      .update({ credits: profile.credits - 1 })
-      .eq("id", user.id);
+    if (!isAdmin) {
+      await service
+        .from("profiles")
+        .update({ credits: currentCredits - 1 })
+        .eq("id", user.id);
+    }
 
     await service.from("generations").insert({
       user_id: user.id,
@@ -66,7 +79,8 @@ export async function POST(req: NextRequest) {
       output: description,
     });
 
-    return NextResponse.json({ description, creditsLeft: profile.credits - 1 });
+    const creditsLeft = isAdmin ? 9999 : currentCredits - 1;
+    return NextResponse.json({ description, creditsLeft });
   } catch (error: unknown) {
     console.error("[generate]", error);
     const message =
