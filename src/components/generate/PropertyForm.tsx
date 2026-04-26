@@ -54,6 +54,7 @@ export default function PropertyForm({ onGenerate, isLoading }: PropertyFormProp
     uniqueSelling: "",
     targetAudience: "",
     tone: "",
+    language: "French",
   });
 
   const update = (field: keyof PropertyFormData, value: string) =>
