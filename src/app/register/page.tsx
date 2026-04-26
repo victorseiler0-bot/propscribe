@@ -32,7 +32,7 @@ export default function RegisterPage() {
           first_name: firstName,
           last_name: lastName,
         },
-        emailRedirectTo: `${location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || location.origin}/auth/callback?next=/dashboard`,
       },
     });
 
@@ -58,7 +58,7 @@ export default function RegisterPage() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || location.origin}/auth/callback?next=/dashboard`,
       },
     });
   };
@@ -117,7 +117,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Google OAuth button */}
           <Button
             type="button"
             variant="secondary"
@@ -132,14 +131,12 @@ export default function RegisterPage() {
             Continuer avec Google
           </Button>
 
-          {/* Divider */}
           <div className="relative flex items-center gap-3">
             <div className="flex-1 border-t border-white/[0.06]" />
             <span className="text-xs text-slate-600">ou avec email</span>
             <div className="flex-1 border-t border-white/[0.06]" />
           </div>
 
-          {/* Email/password form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input name="firstName" label="Prénom" placeholder="Alex" required />

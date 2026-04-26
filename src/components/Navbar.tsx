@@ -3,16 +3,34 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Button from "./ui/Button";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const navLinks = [
+    { href: "#how-it-works", label: "Comment ça marche" },
+    { href: "#pricing", label: "Tarifs" },
+    { href: "#faq", label: "FAQ" },
+  ];
 
   return (
     <header
@@ -38,11 +56,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8">
-          {[
-            { href: "#how-it-works", label: "How It Works" },
-            { href: "#pricing", label: "Pricing" },
-            { href: "#faq", label: "FAQ" },
-          ].map((item) => (
+          {navLinks.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -53,14 +67,27 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA */}
+        {/* CTA — changes based on auth state */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">Sign In</Button>
-          </Link>
-          <Link href="/generate">
-            <Button variant="primary" size="sm">Get Started Free</Button>
-          </Link>
+          {user ? (
+            <>
+              <Link href="/account">
+                <Button variant="ghost" size="sm">Mon compte</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="primary" size="sm">Tableau de bord</Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" size="sm">Connexion</Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="primary" size="sm">Commencer gratuitement</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -82,11 +109,7 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-[#0a0f1e]/95 backdrop-blur-xl border-b border-white/[0.06] px-6 py-4 flex flex-col gap-4">
-          {[
-            { href: "#how-it-works", label: "How It Works" },
-            { href: "#pricing", label: "Pricing" },
-            { href: "#faq", label: "FAQ" },
-          ].map((item) => (
+          {navLinks.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -97,8 +120,25 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="flex flex-col gap-2 pt-2 border-t border-white/[0.06]">
-            <Link href="/login"><Button variant="ghost" size="sm" className="w-full">Sign In</Button></Link>
-            <Link href="/generate"><Button variant="primary" size="sm" className="w-full">Get Started Free</Button></Link>
+            {user ? (
+              <>
+                <Link href="/account" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full">Mon compte</Button>
+                </Link>
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+                  <Button variant="primary" size="sm" className="w-full">Tableau de bord</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full">Connexion</Button>
+                </Link>
+                <Link href="/register" onClick={() => setMobileOpen(false)}>
+                  <Button variant="primary" size="sm" className="w-full">Commencer gratuitement</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
