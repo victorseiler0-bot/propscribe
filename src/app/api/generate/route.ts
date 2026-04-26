@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGeminiClient, buildPrompt } from "@/lib/openai";
+import { generateWithGroq, buildPrompt } from "@/lib/openai";
 import { createServerSupabaseClient, createServiceClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
 
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? "");
   const service = createServiceClient();
-
   let currentCredits = 0;
 
   if (!isAdmin) {
@@ -48,21 +47,10 @@ export async function POST(req: NextRequest) {
     if (!data.language) data.language = "French";
 
     const prompt = buildPrompt(data);
-
-    const model = getGeminiClient().getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction:
-        "You are PropScribe, an expert real estate copywriter. You generate compelling, professional property descriptions that sell. Your output is always polished, engaging, and ready to publish.",
-    });
-
-    const result = await model.generateContent(prompt);
-    const description = result.response.text().trim();
+    const description = await generateWithGroq(prompt);
 
     if (!description) {
-      return NextResponse.json(
-        { error: "Échec de la génération. Réessaie." },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Échec de la génération. Réessaie." }, { status: 500 });
     }
 
     if (!isAdmin) {
@@ -83,8 +71,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ description, creditsLeft });
   } catch (error: unknown) {
     console.error("[generate]", error);
-    const message =
-      error instanceof Error ? error.message : "Une erreur inattendue s'est produite.";
+    const message = error instanceof Error ? error.message : "Une erreur inattendue.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
