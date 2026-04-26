@@ -1,12 +1,9 @@
-export interface PropertyFormData {
-  propertyType: string;
-  location: string;
-  bedrooms: string;
-  bathrooms: string;
-  squareFootage: string;
-  keyFeatures: string;
+export interface ProductFormData {
+  productName: string;
+  category: string;
+  features: string;
   uniqueSelling: string;
-  targetAudience: string;
+  targetBuyer: string;
   tone: string;
   language: string;
 }
@@ -16,41 +13,33 @@ export async function generateWithGroq(prompt: string): Promise<string> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: "Bearer " + process.env.GROQ_API_KEY,
     },
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [
-        {
-          role: "system",
-          content: "You are PropScribe, an expert real estate copywriter. Output ONLY the description — no title, no preamble.",
-        },
+        { role: "system", content: "You are an expert e-commerce copywriter. Write compelling, SEO-optimized product descriptions that convert. Output ONLY the description." },
         { role: "user", content: prompt },
       ],
       max_tokens: 600,
       temperature: 0.8,
     }),
   });
-
   if (!response.ok) {
     const err = await response.json().catch(() => ({})) as { error?: { message?: string } };
-    throw new Error(err?.error?.message || ("Groq API error " + response.status));
+    throw new Error((err as any)?.error?.message || ("Groq API error " + response.status));
   }
-
   const data = await response.json() as { choices: { message: { content: string } }[] };
   return data.choices[0]?.message?.content?.trim() ?? "";
 }
 
-export function buildPrompt(data: PropertyFormData): string {
-  let p = "Write a real estate description in " + data.language + ". ";
-  p += "Property: " + data.propertyType + " in " + data.location + ". ";
-  if (data.bedrooms) p += "Bedrooms: " + data.bedrooms + ". ";
-  if (data.bathrooms) p += "Bathrooms: " + data.bathrooms + ". ";
-  if (data.squareFootage) p += "Size: " + data.squareFootage + ". ";
-  if (data.keyFeatures) p += "Features: " + data.keyFeatures + ". ";
-  if (data.uniqueSelling) p += "Highlights: " + data.uniqueSelling + ". ";
-  if (data.targetAudience) p += "Target: " + data.targetAudience + ". ";
+export function buildPrompt(data: ProductFormData): string {
+  let p = "Write an SEO-optimized e-commerce product description in " + data.language + ". ";
+  p += "Product: " + data.productName + ". Category: " + data.category + ". ";
+  if (data.features) p += "Features: " + data.features + ". ";
+  if (data.uniqueSelling) p += "Unique value: " + data.uniqueSelling + ". ";
+  if (data.targetBuyer) p += "Target buyer: " + data.targetBuyer + ". ";
   p += "Tone: " + data.tone + ". ";
-  p += "Rules: write entirely in " + data.language + ", open with a powerful hook, weave features into a narrative (no bullet points), paint a lifestyle picture, end with a call-to-action, 150-220 words, output ONLY the description.";
+  p += "Rules: write entirely in " + data.language + ", hook the reader immediately, weave in SEO keywords naturally, highlight benefits over features, create desire, end with a subtle CTA, 100-180 words, output ONLY the description.";
   return p;
 }

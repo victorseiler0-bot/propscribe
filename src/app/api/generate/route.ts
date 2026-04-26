@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
 
   const isAdmin = ADMIN_EMAILS.includes(user.email ?? "");
   const service = createServiceClient();
+
   let currentCredits = 0;
 
   if (!isAdmin) {
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
 
-    if (!data.propertyType || !data.location || !data.tone) {
+    if (!data.productName || !data.category || !data.tone) {
       return NextResponse.json(
         { error: "Type de bien, localisation et ton sont requis." },
         { status: 400 }
@@ -47,10 +48,14 @@ export async function POST(req: NextRequest) {
     if (!data.language) data.language = "French";
 
     const prompt = buildPrompt(data);
+
     const description = await generateWithGroq(prompt);
 
     if (!description) {
-      return NextResponse.json({ error: "Échec de la génération. Réessaie." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Échec de la génération. Réessaie." },
+        { status: 500 }
+      );
     }
 
     if (!isAdmin) {
@@ -62,8 +67,8 @@ export async function POST(req: NextRequest) {
 
     await service.from("generations").insert({
       user_id: user.id,
-      property_type: data.propertyType,
-      location: data.location,
+      product_name: data.productName,
+      category: data.category,
       output: description,
     });
 
@@ -71,7 +76,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ description, creditsLeft });
   } catch (error: unknown) {
     console.error("[generate]", error);
-    const message = error instanceof Error ? error.message : "Une erreur inattendue.";
+    const message =
+      error instanceof Error ? error.message : "Une erreur inattendue s'est produite.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

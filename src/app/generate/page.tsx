@@ -2,17 +2,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import PropertyForm from "@/components/generate/PropertyForm";
+import ProductForm from "@/components/generate/PropertyForm";
 import OutputDisplay from "@/components/generate/OutputDisplay";
 import Card from "@/components/ui/Card";
-import { PropertyFormData } from "@/lib/openai";
+import { ProductFormData } from "@/lib/openai";
 import { createClient } from "@/lib/supabase";
 
 export default function GeneratePage() {
   const [description, setDescription] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastForm, setLastForm] = useState<PropertyFormData | null>(null);
+  const [lastForm, setLastForm] = useState<ProductFormData | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function GeneratePage() {
     });
   }, []);
 
-  const generate = async (data: PropertyFormData) => {
+  const generate = async (data: ProductFormData) => {
     setIsLoading(true);
     setError(null);
     setLastForm(data);
@@ -77,10 +77,10 @@ export default function GeneratePage() {
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
-                  Générer une description
+                  Générer une fiche produit
                 </h1>
                 <p className="text-slate-400">
-                  Remplis le formulaire et laisse l'IA rédiger ton annonce.
+                  Remplis les infos produit — l'IA rédige une fiche SEO optimisée.
                 </p>
               </div>
               {credits !== null && (
@@ -94,7 +94,7 @@ export default function GeneratePage() {
 
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             <Card shine className="p-8">
-              <PropertyForm onGenerate={generate} isLoading={isLoading} />
+              <ProductForm onGenerate={generate} isLoading={isLoading} />
             </Card>
 
             <div id="output" className="sticky top-24">
@@ -132,12 +132,12 @@ export default function GeneratePage() {
                     )}
                   </div>
                   <h3 className="text-white font-semibold mb-2">
-                    {isLoading ? "Rédaction en cours..." : "Ta description apparaîtra ici"}
+                    {isLoading ? "Rédaction en cours..." : "Ta fiche produit apparaîtra ici"}
                   </h3>
                   <p className="text-slate-500 text-sm max-w-xs">
                     {isLoading
-                      ? "L'IA rédige une annonce sur-mesure pour ton bien."
-                      : "Complète le formulaire à gauche et clique sur Générer."}
+                      ? "L'IA rédige ta fiche produit optimisée SEO."
+                      : "Remplis les infos à gauche et clique sur Générer."}
                   </p>
                   {isLoading && (
                     <div className="w-48 h-1 rounded-full bg-white/[0.06] mt-6 overflow-hidden">

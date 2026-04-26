@@ -10,20 +10,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PropScribe — AI Property Description Generator for Real Estate Agents",
+  title: "PropScribe — Fiches produits rédigées par l'IA en 10 secondes",
   description:
-    "Generate captivating, professional real estate property descriptions in seconds with PropScribe's AI-powered platform. Trusted by 1,200+ agents.",
-  keywords: ["real estate", "property description", "AI", "listing copy", "real estate agent tools"],
+    "Génère des fiches produits optimisées SEO pour Shopify, WooCommerce et Amazon. 8 langues, 1 crédit par fiche. Essai gratuit — 5 fiches offertes.",
+  keywords: ["fiche produit", "IA", "Shopify", "e-commerce", "rédaction automatique", "SEO", "WooCommerce"],
   openGraph: {
-    title: "PropScribe — AI Property Descriptions",
-    description: "Transform property details into captivating narratives that sell.",
+    title: "PropScribe — Fiches produits IA pour e-commerce",
+    description: "Des fiches produits qui convertissent, rédigées par l'IA en 10 secondes.",
     type: "website",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <body className="bg-bg-primary antialiased" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
