@@ -1,12 +1,12 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-let _openai: OpenAI | null = null;
+let _gemini: GoogleGenerativeAI | null = null;
 
-export function getOpenAIClient(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export function getGeminiClient(): GoogleGenerativeAI {
+  if (!_gemini) {
+    _gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   }
-  return _openai;
+  return _gemini;
 }
 
 export interface PropertyFormData {
@@ -22,7 +22,7 @@ export interface PropertyFormData {
 }
 
 export function buildPrompt(data: PropertyFormData): string {
-  return `You are an expert real estate copywriter. Generate a compelling, professional property listing description based on the following details.
+  return `You are PropScribe, an expert real estate copywriter. Generate a compelling, professional property listing description based on the following details.
 
 Property Details:
 - Type: ${data.propertyType}

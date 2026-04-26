@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOpenAIClient, buildPrompt } from "@/lib/openai";
+import { getGeminiClient, buildPrompt } from "@/lib/openai";
 import { createServerSupabaseClient, createServiceClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  // Auth check
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -13,7 +12,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
   }
 
-  // Credit check
   const service = createServiceClient();
   const { data: profile } = await service
     .from("profiles")
@@ -40,21 +38,14 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(data);
 
-    const completion = await getOpenAIClient().chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are PropScribe, an expert real estate copywriter. You generate compelling, professional property descriptions that sell. Your output is always polished, engaging, and ready to publish.",
-        },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 500,
-      temperature: 0.8,
+    const model = getGeminiClient().getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction:
+        "You are PropScribe, an expert real estate copywriter. You generate compelling, professional property descriptions that sell. Your output is always polished, engaging, and ready to publish.",
     });
 
-    const description = completion.choices[0]?.message?.content?.trim();
+    const result = await model.generateContent(prompt);
+    const description = result.response.text().trim();
 
     if (!description) {
       return NextResponse.json(
@@ -63,13 +54,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Deduct 1 credit
     await service
       .from("profiles")
       .update({ credits: profile.credits - 1 })
       .eq("id", user.id);
 
-    // Save generation
     await service.from("generations").insert({
       user_id: user.id,
       property_type: data.propertyType,
