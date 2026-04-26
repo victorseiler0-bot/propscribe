@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase-server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature")!;
+  const stripe = getStripe();
 
   let event: Stripe.Event;
   try {
@@ -30,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient();
 
-    // Record the purchase
     await supabase.from("purchases").insert({
       user_id: userId,
       stripe_session_id: session.id,
@@ -38,7 +40,6 @@ export async function POST(req: NextRequest) {
       amount_cents: amountCents,
     });
 
-    // Add credits to profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("credits")

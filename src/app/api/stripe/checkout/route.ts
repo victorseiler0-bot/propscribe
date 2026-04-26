@@ -2,15 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2026-04-22.dahlia",
+  });
+}
 
-const CREDIT_MAP: Record<string, number> = {
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_50!]: 50,
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_200!]: 200,
-  [process.env.NEXT_PUBLIC_STRIPE_PRICE_500!]: 500,
-};
+function getCreditMap() {
+  return {
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_50!]: 50,
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_200!]: 200,
+    [process.env.NEXT_PUBLIC_STRIPE_PRICE_500!]: 500,
+  } as Record<string, number>;
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -20,7 +24,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Support both JSON and form POST
   let priceId: string | null = null;
   const contentType = req.headers.get("content-type") || "";
 
@@ -32,11 +35,13 @@ export async function POST(req: NextRequest) {
     priceId = form.get("priceId") as string;
   }
 
-  if (!priceId || !CREDIT_MAP[priceId]) {
+  const creditMap = getCreditMap();
+  if (!priceId || !creditMap[priceId]) {
     return NextResponse.json({ error: "Invalid price" }, { status: 400 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://propscribe-omega.vercel.app";
+  const stripe = getStripe();
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -48,7 +53,7 @@ export async function POST(req: NextRequest) {
     metadata: {
       user_id: user.id,
       price_id: priceId,
-      credits: String(CREDIT_MAP[priceId]),
+      credits: String(creditMap[priceId]),
     },
   });
 
