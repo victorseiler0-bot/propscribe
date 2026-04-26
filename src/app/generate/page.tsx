@@ -1,17 +1,28 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import PropertyForm from "@/components/generate/PropertyForm";
 import OutputDisplay from "@/components/generate/OutputDisplay";
 import Card from "@/components/ui/Card";
 import { PropertyFormData } from "@/lib/openai";
+import { createClient } from "@/lib/supabase";
 
 export default function GeneratePage() {
   const [description, setDescription] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastForm, setLastForm] = useState<PropertyFormData | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("credits").eq("id", user.id).single();
+      if (data) setCredits(data.credits);
+    });
+  }, []);
 
   const generate = async (data: PropertyFormData) => {
     setIsLoading(true);
@@ -27,17 +38,17 @@ export default function GeneratePage() {
 
       const json = await res.json();
 
-      if (!res.ok) throw new Error(json.error || "Generation failed.");
+      if (!res.ok) throw new Error(json.error || "Échec de la génération.");
       setDescription(json.description);
+      if (json.creditsLeft !== undefined) setCredits(json.creditsLeft);
 
-      // Scroll to output on mobile
       if (window.innerWidth < 768) {
         setTimeout(() => {
           document.getElementById("output")?.scrollIntoView({ behavior: "smooth" });
         }, 100);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : "Une erreur est survenue.");
     } finally {
       setIsLoading(false);
     }
@@ -51,40 +62,50 @@ export default function GeneratePage() {
     <>
       <Navbar />
       <div className="min-h-screen pt-20 pb-16">
-        {/* Background */}
         <div className="fixed inset-0 pointer-events-none -z-10">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-amber-500/[0.04] rounded-full blur-[120px]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-6">
-          {/* Header */}
           <div className="mb-10">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors mb-6">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors mb-6">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              Back to home
+              Mon tableau de bord
             </Link>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
-              Generate Property Description
-            </h1>
-            <p className="text-slate-400">
-              Fill in the details below and let AI craft your perfect listing copy.
-            </p>
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
+                  Générer une description
+                </h1>
+                <p className="text-slate-400">
+                  Remplis le formulaire et laisse l'IA rédiger ton annonce.
+                </p>
+              </div>
+              {credits !== null && (
+                <div className="glass rounded-xl px-4 py-2.5 text-center">
+                  <span className="text-amber-400 font-bold text-lg block">{credits}</span>
+                  <span className="text-slate-500 text-xs">crédits</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Two-column layout */}
           <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Form */}
             <Card shine className="p-8">
               <PropertyForm onGenerate={generate} isLoading={isLoading} />
             </Card>
 
-            {/* Output */}
             <div id="output" className="sticky top-24">
               {error && (
                 <div className="rounded-xl border border-red-500/20 bg-red-500/[0.06] p-5 mb-4">
                   <p className="text-red-400 text-sm">{error}</p>
+                  {error.includes("Crédits insuffisants") && (
+                    <Link href="/dashboard" className="text-amber-400 text-sm font-medium hover:underline block mt-2">
+                      Acheter des crédits →
+                    </Link>
+                  )}
                 </div>
               )}
 
@@ -111,12 +132,12 @@ export default function GeneratePage() {
                     )}
                   </div>
                   <h3 className="text-white font-semibold mb-2">
-                    {isLoading ? "Crafting your description..." : "Your description will appear here"}
+                    {isLoading ? "Rédaction en cours..." : "Ta description apparaîtra ici"}
                   </h3>
                   <p className="text-slate-500 text-sm max-w-xs">
                     {isLoading
-                      ? "Our AI is writing compelling copy tailored to your property."
-                      : "Complete the form on the left and click Generate to get started."}
+                      ? "L'IA rédige une annonce sur-mesure pour ton bien."
+                      : "Complète le formulaire à gauche et clique sur Générer."}
                   </p>
                   {isLoading && (
                     <div className="w-48 h-1 rounded-full bg-white/[0.06] mt-6 overflow-hidden">
@@ -126,11 +147,10 @@ export default function GeneratePage() {
                 </Card>
               )}
 
-              {/* Credits info */}
               <div className="mt-4 flex items-center justify-between text-xs text-slate-600 px-1">
-                <span>5 free credits available</span>
-                <Link href="#pricing" className="text-amber-500 hover:text-amber-400 transition-colors">
-                  Buy more credits →
+                <span>{credits !== null ? `${credits} crédit${credits > 1 ? "s" : ""} restant${credits > 1 ? "s" : ""}` : "Chargement..."}</span>
+                <Link href="/dashboard" className="text-amber-500 hover:text-amber-400 transition-colors">
+                  Acheter des crédits →
                 </Link>
               </div>
             </div>
